@@ -34,12 +34,12 @@ All tests code of the API
 
 1. Clone the repo on your computer
 2. Open your terminal and cd to the project folder
-3. [Install Pipenv](https://docs.pipenv.org/en/latest/) (it manager python packages and dev environment)
+3. [Install Pipenv](https://docs.pipenv.org/en/latest/) (it manages python packages and dev environment)
 4. Create a virtual environment
    `pipenv --python 3.7`
 5. Activate your virtual environment
    `pipenv shell`
-6. Install all the project dependencies
+6. Install all project dependencies
    `pipenv install`
 7. Run the web server
    `python src/app.py`
@@ -52,5 +52,7 @@ If everything is running well, you have to see the following message:
        Use a production WSGI server instead.
      * Debug mode: off
      * Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)
+
+8. You can start testing the API via `http://127.0.0.1:5000/`
 
 ## How to use the API?
