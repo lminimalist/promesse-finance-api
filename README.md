@@ -1,5 +1,8 @@
 # Promesse Finance API
 
+![
+](https://i.imgur.com/QD9pkZW.png)
+
 ## Project folder structure
 
 ### app.py
@@ -33,7 +36,7 @@ All tests code of the API
 2. Open your terminal and cd to the project folder
 3. [Install Pipenv](https://docs.pipenv.org/en/latest/) (it manager python packages and dev environment)
 4. Create a virtual environment
-   `pipenv --python 3.6`
+   `pipenv --python 3.7`
 5. Activate your virtual environment
    `pipenv shell`
 6. Install all the project dependencies
