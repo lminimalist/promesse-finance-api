@@ -1,3 +1,2 @@
 from pytest import fixture
-
-# @fixture(scope='function')
+from utils.scraping.browser import open_browser
