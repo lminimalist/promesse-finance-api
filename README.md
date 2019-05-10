@@ -18,7 +18,7 @@ Credentials to connect to db
 
 Define schema of the data stored in DB
 
-### /routes
+### /resources
 
 Code logic that handles incoming requests from the client
 

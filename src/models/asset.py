@@ -1,0 +1,2 @@
+class AssetModel:
+    pass

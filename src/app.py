@@ -1,6 +1,10 @@
-from utils.scraping.yahoofinance import get_price_history
+from flask import Flask
+from flask_restful import Api
 
+app = Flask(__name__)
+api = Api(app)
 
-ticker = get_price_history(
-    'AAPL', start='2018-04-23', end='2019-05-10')
-print(ticker)
+# api.add_resource(Asset, '/asset/<string:ticker>')
+
+if __name__ == '__main__':
+    app.run(port=5000, debug=True)
