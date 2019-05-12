@@ -42,6 +42,8 @@ class AssetModel(Document):
             try:
                 updated_data = get_price_history(
                     self.ticker, start=latest_date_db)[1:]
+                if len(updated_data) == 0 or updated_data[0]['date'] == latest_date_db:
+                    return None
 
                 return updated_data
             except:

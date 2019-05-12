@@ -35,9 +35,3 @@ class Asset(Resource):
             asset.reload()
 
         return asset.to_json(), 200
-
-    def post(self, ticker):
-        pass
-
-    def put(self, ticker):
-        pass
