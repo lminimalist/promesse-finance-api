@@ -15,6 +15,7 @@ pytest = "*"
 beautifulsoup4 = "*"
 requests = "*"
 flask = "*"
+dnspython = "*"
 
 [requires]
 python_version = "3.7"

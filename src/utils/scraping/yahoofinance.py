@@ -93,14 +93,13 @@ def get_csv_content(url, cookies):
 
     # Set the cookies in to the request header
     jar = requests.cookies.RequestsCookieJar()
-
     for cookie in cookies:
         jar.set(cookie['name'], cookie['value'], domain=cookie['domain'])
 
     # GET request to download the csv content
     csv_content = requests.get(url, cookies=jar).text
 
-    # Return the content as a String Object so it can be read by Pandas
+    # Return the content as an In-memory String Object so it can be read by Pandas, instead of dowloading the file in to the hard disk
     return StringIO(csv_content)
 
 
@@ -109,25 +108,26 @@ def clean_csv_content(csv_content):
     ticker_data = pd.read_csv(csv_content, sep=',')
 
     # It checks if the dataframe has empty data
+    # It could happen when a given data range hasn't any price records (eg. weekends or holidays)
     if len(ticker_data) == 0:
         raise NoCSVContentError(
-            'Error while reading the csv file. The dataframe might be empty')
+            'Error while reading the csv file. The dataframe must be empty')
 
-    # Drop 'Adj Close' column
+    # Drop 'Adj Close' column because it is not that useful in analysis, is it?
     ticker_data = ticker_data.drop('Adj Close', axis='columns')
 
-    # Rename columns
+    # Rename columns (Date -> date, Open -> open, etc.)
     cols_rename = {col: col.lower() for col in ticker_data.columns}
     ticker_data = ticker_data.rename(columns=cols_rename)
 
-    # Convert date column to the right type
+    # Convert date column type (which is a string) to a datetime object
     ticker_data['date'] = pd.to_datetime(
         ticker_data['date'], format='%Y-%m-%d')
 
-    # Fill any NaN row
+    # Fill any NaN row with the previous row data
     ticker_data = ticker_data.fillna(method='pad')
 
-    # Convert volume values to integer
+    # Convert volume values from float to integer
     ticker_data['volume'] = ticker_data['volume'].astype('int64')
 
     return ticker_data
@@ -170,4 +170,4 @@ def get_price_history(ticker, *, start=datetime(1970, 1, 1), end=datetime.now())
     csv_content = get_csv_content(download_link, cookies)
     price_history_cleaned = clean_csv_content(csv_content)
 
-    return price_history_cleaned
+    return price_history_cleaned.to_dict('records')
