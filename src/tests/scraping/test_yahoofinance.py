@@ -10,6 +10,9 @@ from datetime import datetime
 class YahooFinanceBotTests():
 
     def test_yahoo_finance_scraping_steps(self):
+        '''
+        Test the step by step process to get data from Yahoo Finance
+        '''
         with open_browser('https://finance.yahoo.com/quote/AAPL/history?p=AAPL') as browser:
             cookies = set_cookies(browser)
             assert type(cookies) == list

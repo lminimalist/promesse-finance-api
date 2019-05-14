@@ -133,7 +133,7 @@ def clean_csv_content(csv_content):
     return ticker_data
 
 
-def get_price_history(ticker, *, start=datetime(1970, 1, 1), end=datetime.now()):
+def get_price_history(ticker, *, start=datetime(1900, 1, 1), end=None):
     '''
     - Description
     Extract historical data price from Yahoo Finance API
@@ -155,7 +155,7 @@ def get_price_history(ticker, *, start=datetime(1970, 1, 1), end=datetime.now())
     # Convert date to timestamps because Yahoo Finance accepts only this format
     # Date should have an offset of 1 day in order to get the right data. That's how Yahoo Finance works
     start = datetime.timestamp(start + timedelta(days=1))
-    end = datetime.timestamp(end + timedelta(days=1))
+    end = datetime.timestamp((end or datetime.now()) + timedelta(days=1))
 
     # Maybe create later a comprehensive function that checks the validity of a date range:
     # eg: weekend, holidays
@@ -169,5 +169,4 @@ def get_price_history(ticker, *, start=datetime(1970, 1, 1), end=datetime.now())
 
     csv_content = get_csv_content(download_link, cookies)
     price_history_cleaned = clean_csv_content(csv_content)
-
-    return price_history_cleaned.to_dict('records')
+    return price_history_cleaned

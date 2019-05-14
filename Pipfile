@@ -16,6 +16,7 @@ beautifulsoup4 = "*"
 requests = "*"
 flask = "*"
 dnspython = "*"
+timeloop = "*"
 
 [requires]
 python_version = "3.7"

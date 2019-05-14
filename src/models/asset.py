@@ -4,7 +4,7 @@ from utils.scraping.yahoofinance import get_price_history
 
 
 class PriceHistoryModel(EmbeddedDocument):
-    date = DateTimeField(primary_key=True)
+    date = DateTimeField(required=True)
     open = FloatField(required=True)
     high = FloatField(required=True)
     low = FloatField(required=True)
@@ -16,6 +16,10 @@ class AssetModel(Document):
     ticker = StringField(required=True)
     category = StringField(default='')
     price_history = ListField(EmbeddedDocumentField(PriceHistoryModel))
+
+    meta = {
+        'collection': 'assets'
+    }
 
     def check_for_updates(self):
         '''
@@ -36,12 +40,12 @@ class AssetModel(Document):
         if weekday == 5:  # Saturday
             recent_date -= timedelta(days=1)
         elif weekday == 6:  # Sunday
-            recent_date = timedelta(days=2)
+            recent_date -= timedelta(days=2)
 
-        if latest_date_db != recent_date:
+        if latest_date_db.strftime('%Y-%m-%d') != recent_date.strftime('%Y-%m-%d'):
             try:
                 updated_data = get_price_history(
-                    self.ticker, start=latest_date_db)[1:]
+                    self.ticker, start=latest_date_db).to_dict('records')[1:]
                 if len(updated_data) == 0 or updated_data[0]['date'] == latest_date_db:
                     return None
 
@@ -53,11 +57,14 @@ class AssetModel(Document):
         return {
             f'{self.ticker}': {
                 'type': self.category,
-                'price_history': [{'date': p.date.strftime("%Y-%m-%d"), 'open': p.open, 'high': p.high, 'low': p.low,
-                                   'close': p.close, 'volume': p.volume} for p in self.price_history]
+                'time_series': self.time_series,
+                'price_history': {
+                    p.date.strftime("%Y-%m-%d"): {'open': p.open,
+                                                  'high': p.high,
+                                                  'low': p.low,
+                                                  'close': p.close,
+                                                  'volume': p.volume}
+                    for p in self.price_history
+                }
             }
         }
-
-    meta = {
-        'collection': 'assets'
-    }
