@@ -1,15 +1,21 @@
 from flask_restful import Resource, reqparse
-from models.asset import AssetModel
+from models.asset import AssetModel, asset_schema, price_history_schema
 from utils.scraping.yahoofinance import get_price_history, DownloadLinkNotFoundError
 from datetime import datetime, date
+from time import time
+import pandas as pd
+from utils.finance.resample import resample_asset
+from utils.finance.returns import calc_returns
 
 
 class AssetHistory(Resource):
+
     # Define parameters to be used when sending requests to the server
     parser = reqparse.RequestParser()
     parser.add_argument('start', type=str, location='args')
     parser.add_argument('end', type=str, location='args')
     parser.add_argument('time_series', type=str, location='args')
+    parser.add_argument('returns', type=int, location='args')
 
     def get(self, ticker):
         '''
@@ -18,6 +24,10 @@ class AssetHistory(Resource):
 
         # Tickers are by convention in UPPERCASE
         ticker = ticker.upper()
+
+        # Return error message if asset does not exist
+        if not AssetModel.objects(ticker=ticker).first():
+            return {'message': f'The asset ({ticker}) does not exist in the database.'}, 404
 
         # Setting querystring parameters
         params = self.parser.parse_args()
@@ -34,20 +44,45 @@ class AssetHistory(Resource):
             end = datetime.utcnow()
 
         time_series = params['time_series'] or 'daily'
+        returns = params['returns'] or None
 
-        # Return error message if asset does not exist
-        if not AssetModel.objects(ticker=ticker).first():
-            return {'message': f'The asset ({ticker}) does not exist in the database.'}, 404
-
-        # Return asset with applied date range filter
+        # Apply date range parameters
         asset = AssetModel.objects(ticker=ticker).first()
-        asset.time_series = time_series
         asset.price_history = filter(
             lambda p:
                 p['date'] >= start and p['date'] <= end,
                 asset.price_history)
 
-        return asset.to_json(), 200
+        # Resample asset if times_series paramater is set
+        if time_series == 'weekly' or time_series == 'monthly':
+            df_price_history = pd.DataFrame(
+                asset_schema.dump(asset).data['price_history'])
+            df_price_history['date'] = pd.to_datetime(
+                df_price_history['date'])
+            df_price_history.set_index('date', inplace=True)
+
+            df_price_history_resampled = resample_asset(
+                df_price_history, time_series)
+            df_price_history_resampled.reset_index(inplace=True)
+
+            df_price_history_resampled['date'] = df_price_history_resampled['date'].astype(
+                str)
+
+            asset.price_history = price_history_schema.load(
+                df_price_history_resampled.to_dict('records'), many=True)[0]
+
+        if returns:
+            df_price_history = pd.DataFrame(
+                asset_schema.dump(asset).data['price_history'])
+            df_price_history['pct_returns'] = df_price_history['close'].pct_change(
+                1)
+
+            print(df_price_history['pct_returns'].describe())
+
+            asset.price_history = price_history_schema.load(
+                df_price_history.to_dict('records'), many=True)[0]
+
+        return asset_schema.dump(asset).data, 200
 
     def post(self, ticker):
         '''
@@ -60,7 +95,7 @@ class AssetHistory(Resource):
             return {'message': f'{ticker} does not exist in the market yet.'}, 404
 
         new_asset.save()
-        return new_asset.to_json(), 201
+        return asset_schema.dump(new_asset).data, 201
 
     def put(self, ticker):
         '''
@@ -84,6 +119,6 @@ class AssetHistory(Resource):
                 push_all__price_history=updated_asset_data)
 
             asset.reload()
-            return asset.to_json(), 202
+            return asset_schema.dump(asset).data, 202
 
         return {'message': f'{ticker} does not need updates.'}, 200

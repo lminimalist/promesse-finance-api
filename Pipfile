@@ -17,6 +17,8 @@ requests = "*"
 flask = "*"
 dnspython = "*"
 timeloop = "*"
+marshmallow-mongoengine = "*"
+marshmallow = "*"
 
 [requires]
 python_version = "3.7"

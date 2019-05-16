@@ -1,4 +1,6 @@
 from mongoengine import *
+from marshmallow_mongoengine import ModelSchema, fields
+from collections import OrderedDict
 from datetime import datetime, timedelta
 from utils.scraping.yahoofinance import get_price_history
 
@@ -10,6 +12,7 @@ class PriceHistoryModel(EmbeddedDocument):
     low = FloatField(required=True)
     close = FloatField(required=True)
     volume = IntField(required=True)
+    pct_returns = FloatField()
 
 
 class AssetModel(Document):
@@ -53,18 +56,18 @@ class AssetModel(Document):
             except:
                 return None
 
-    def to_json(self):
-        return {
-            f'{self.ticker}': {
-                'type': self.category,
-                'time_series': self.time_series,
-                'price_history': {
-                    p.date.strftime("%Y-%m-%d"): {'open': p.open,
-                                                  'high': p.high,
-                                                  'low': p.low,
-                                                  'close': p.close,
-                                                  'volume': p.volume}
-                    for p in self.price_history
-                }
-            }
-        }
+
+class AssetSchema(ModelSchema):
+    class Meta:
+        model = AssetModel
+        ordered = True
+
+
+class PriceHistorySchema(ModelSchema):
+    class Meta:
+        model = PriceHistoryModel
+        ordered = True
+
+
+asset_schema = AssetSchema(exclude=('id',))
+price_history_schema = PriceHistorySchema()
