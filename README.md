@@ -1,5 +1,7 @@
 # Promesse Finance API
 
+Goal: create an apified version of Yahoo Finance where you can fetch JSON stocks data using HTTP (e.g https://hostname/AAPL/price) instead of manually downloding the csv from Yahoo Finance website.
+
 ![
 ](https://i.imgur.com/QD9pkZW.png)
 
